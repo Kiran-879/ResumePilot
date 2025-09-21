@@ -115,7 +115,7 @@ const EvaluationTrigger = ({ onEvaluationComplete }) => {
             >
               {resumes.map((resume) => (
                 <MenuItem key={resume.id} value={resume.id}>
-                  {resume.user.first_name} {resume.user.last_name} - {resume.user.email}
+                  {resume.file_name}
                 </MenuItem>
               ))}
             </Select>
