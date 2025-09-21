@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import EvaluationCard from './EvaluationCard';
-import { evaluationService } from '../../services/evaluationServices';
+import { generateEvaluationReport } from '../../utils/reportGenerator';
 
 const EvaluationList = ({ evaluations, loading, error, onRefresh }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,20 +72,26 @@ const EvaluationList = ({ evaluations, loading, error, onRefresh }) => {
     setCurrentPage(page);
   };
 
-  const handleDownloadReport = async (evaluationId) => {
+  const handleDownloadReport = (evaluationId) => {
     try {
-      const response = await evaluationService.downloadReport(evaluationId);
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `evaluation_report_${evaluationId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
+      console.log('Download report clicked for evaluation:', evaluationId);
+      
+      // Find the evaluation by ID
+      const evaluation = evaluations.find(evaluation => evaluation.id === evaluationId);
+      
+      if (!evaluation) {
+        console.error('Evaluation not found:', evaluationId);
+        alert('Evaluation not found. Please try refreshing the page.');
+        return;
+      }
+      
+      console.log('Generating PDF report for:', evaluation);
+      // Generate and download PDF report
+      generateEvaluationReport(evaluation);
+      
     } catch (error) {
       console.error('Failed to download report:', error);
+      alert('Failed to generate report: ' + error.message);
     }
   };
 

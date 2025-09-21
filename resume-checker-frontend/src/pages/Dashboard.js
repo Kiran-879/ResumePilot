@@ -19,7 +19,8 @@ import {
   Description as ResumeIcon,
   Work as JobIcon,
   Assessment as EvaluationIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -47,34 +48,61 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
+      console.log('🔍 Loading dashboard data...');
+
       // Load all data in parallel
       const [resumesRes, jobsRes, evaluationsRes] = await Promise.all([
-        resumeService.getResumes(),
-        jobService.getJobs(),
-        evaluationService.getEvaluations()
+        resumeService.getResumes().catch(err => {
+          console.error('❌ Failed to load resumes:', err);
+          return { data: [] };
+        }),
+        jobService.getJobs().catch(err => {
+          console.error('❌ Failed to load jobs:', err);
+          return { data: [] };
+        }),
+        evaluationService.getEvaluations().catch(err => {
+          console.error('❌ Failed to load evaluations:', err);
+          return { data: [] };
+        })
       ]);
 
-      const resumes = resumesRes.data || [];
-      const jobs = jobsRes.data || [];
-      const evaluations = evaluationsRes.data || [];
+      console.log('📊 API Responses:', {
+        resumes: resumesRes,
+        jobs: jobsRes,
+        evaluations: evaluationsRes
+      });
+
+      // Handle different response structures
+      const resumes = Array.isArray(resumesRes) ? resumesRes : (resumesRes.data || resumesRes.results || []);
+      const jobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes.data || jobsRes.results || []);
+      const evaluations = Array.isArray(evaluationsRes) ? evaluationsRes : (evaluationsRes.data || evaluationsRes.results || []);
+
+      console.log('📈 Processed data:', {
+        resumes: resumes.length,
+        jobs: jobs.length,
+        evaluations: evaluations.length
+      });
 
       // Calculate stats
       const averageScore = evaluations.length > 0
-        ? Math.round(evaluations.reduce((sum, evaluation) => sum + evaluation.overall_score, 0) / evaluations.length)
+        ? Math.round(evaluations.reduce((sum, evaluation) => sum + (evaluation.overall_score || 0), 0) / evaluations.length)
         : 0;
 
-      setStats({
+      const newStats = {
         resumes: resumes.length,
         jobs: jobs.length,
         evaluations: evaluations.length,
         averageScore
-      });
+      };
+
+      console.log('📊 New stats:', newStats);
+      setStats(newStats);
 
       // Prepare recent activity
       const activity = [
         ...resumes.slice(0, 3).map(resume => ({
           type: 'resume',
-          title: `Resume uploaded by ${resume.user.first_name} ${resume.user.last_name}`,
+          title: `Resume uploaded: ${resume.file_name || 'Unknown file'}`,
           date: resume.created_at,
           icon: <ResumeIcon />,
           color: 'primary'
@@ -151,13 +179,24 @@ const Dashboard = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Welcome back, {user?.username}!
-      </Typography>
-      
-      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-        Here's an overview of your resume checking system
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Welcome back, {user?.username}!
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+            Here's an overview of your resume checking system
+          </Typography>
+        </Box>
+        <Button 
+          variant="outlined" 
+          onClick={loadDashboardData}
+          disabled={loading}
+          startIcon={<RefreshIcon />}
+        >
+          Refresh Data
+        </Button>
+      </Box>
 
       <Grid container spacing={3} sx={{ mt: 1 }}>
         <Grid item xs={12} sm={6} md={3}>

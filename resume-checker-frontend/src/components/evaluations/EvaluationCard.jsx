@@ -50,7 +50,10 @@ const EvaluationCard = ({ evaluation, onDownloadReport }) => {
   };
 
   // Helper function to get person's name from resume
-  const getPersonName = (resume) => {
+  const getPersonName = (evaluation) => {
+    // Use resume_details from the evaluation (contains full resume data)
+    const resume = evaluation?.resume_details;
+    
     // Priority: extracted name from resume > user first/last name > username
     if (resume?.personal_info?.name) {
       return resume.personal_info.name;
@@ -115,10 +118,10 @@ const EvaluationCard = ({ evaluation, onDownloadReport }) => {
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <Box flex={1}>
             <Typography variant="h6" gutterBottom>
-              {getPersonName(evaluation.resume)}
+              {getPersonName(evaluation)}
             </Typography>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              {evaluation.job_description.title} at {evaluation.job_description.company_name}
+              {evaluation.job_details?.title || evaluation.job_description?.title} at {evaluation.job_details?.company_name || evaluation.job_description?.company_name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Evaluated on {formatDate(evaluation.created_at)}
@@ -330,7 +333,15 @@ const EvaluationCard = ({ evaluation, onDownloadReport }) => {
         <Button
           size="small"
           startIcon={<DownloadIcon />}
-          onClick={() => onDownloadReport && onDownloadReport(evaluation.id)}
+          onClick={() => {
+            console.log('Download button clicked for evaluation:', evaluation.id);
+            console.log('onDownloadReport function:', onDownloadReport);
+            if (onDownloadReport) {
+              onDownloadReport(evaluation.id);
+            } else {
+              console.error('onDownloadReport function not provided');
+            }
+          }}
         >
           Download Report
         </Button>
@@ -467,13 +478,15 @@ const EvaluationCard = ({ evaluation, onDownloadReport }) => {
                     <Typography variant="subtitle2">Resume Details</Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Candidate:</strong> {getPersonName(evaluation.resume)}
+                    <strong>Candidate:</strong> {getPersonName(evaluation)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Email: {evaluation.resume?.personal_info?.email || evaluation.resume?.user?.email || 'Not available'}
+                    Email: {evaluation.resume_details?.personal_info?.email || 
+                           evaluation.resume_details?.user_details?.email || 
+                           evaluation.resume_details?.user?.email || 'Not available'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Uploaded: {formatDate(evaluation.resume.created_at)}
+                    Uploaded: {formatDate(evaluation.resume_details?.created_at)}
                   </Typography>
                 </Grid>
 
@@ -483,10 +496,10 @@ const EvaluationCard = ({ evaluation, onDownloadReport }) => {
                     <Typography variant="subtitle2">Job Details</Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Experience: {evaluation.job_description.experience_required || 'Not specified'}
+                    Experience: {evaluation.job_details?.experience_required || evaluation.job_description?.experience_required || 'Not specified'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Location: {evaluation.job_description.location || 'Not specified'}
+                    Location: {evaluation.job_details?.location || evaluation.job_description?.location || 'Not specified'}
                   </Typography>
                 </Grid>
               </Grid>
