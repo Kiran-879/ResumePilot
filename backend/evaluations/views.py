@@ -1,6 +1,6 @@
-# evaluations/views.py
 import time
 import logging
+logger = logging.getLogger(__name__)
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -16,19 +16,9 @@ from .serializer import (
 from resumes.models import Resume
 from jobs.models import JobDescription
 
-# Try to import real LLM services, fallback to mock if OpenAI fails
-try:
-    from llm_services import enhanced_scoring_service, embedding_service
-    USING_MOCK_SERVICES = False
-    logger = logging.getLogger(__name__)
-    logger.info("Using real LLM services")
-except Exception as e:
-    logger = logging.getLogger(__name__)
-    logger.warning(f"OpenAI not available, using mock services: {e}")
-    from mock_llm_services import MockEnhancedScoringService, MockEmbeddingService
-    enhanced_scoring_service = MockEnhancedScoringService()
-    embedding_service = MockEmbeddingService()
-    USING_MOCK_SERVICES = True
+
+# Import real LLM services only
+from llm_services import enhanced_scoring_service, embedding_service
 
 class EvaluationListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -90,7 +80,7 @@ class EvaluationListCreateView(APIView):
             llm_start_time = time.time()
             
             # Log which service is being used
-            service_type = "Mock LLM Services (Demo Mode)" if USING_MOCK_SERVICES else "OpenAI GPT Services"
+            service_type = "OpenAI GPT Services"
             EvaluationLog.objects.create(
                 evaluation=evaluation,
                 step='llm_service_type',

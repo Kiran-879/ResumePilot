@@ -1,9 +1,15 @@
 # LLM Configuration Settings
+
 import os
 from django.conf import settings
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(settings.BASE_DIR, '.env'))
 
 # OpenAI Configuration
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'REMOVED_SECRETAAKdQFNbpcDyMGQE7lRYkWD48sE8Qn7R0AqHuvCxqY5eWp3cfZWvlFqTk8VfYyIj0k9HhYMHV3T3BlbkFJUEIufbrmBSGPolNWllAce7u88rtIGTOMbFk9fu34hE7sq2ByDCw53cLBe90e1A5lkAoRDW9U4A')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+print("OPENAI_API_KEY loaded:", OPENAI_API_KEY)
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 
 # Sentence Transformers Model for embeddings
