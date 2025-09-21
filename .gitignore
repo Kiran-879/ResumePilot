@@ -16,7 +16,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
-llm_config.py
+/backend/llm_config.py
 
 # Environment variables
 .env
