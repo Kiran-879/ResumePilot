@@ -1,6 +1,7 @@
 # resumes/models.py
 from django.db import models
 from django.contrib.auth import get_user_model
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 User = get_user_model()
 
@@ -13,7 +14,12 @@ class Resume(models.Model):
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    file = models.FileField(upload_to='resumes/', blank=True, null=True)  # For local fallback
+    file = models.FileField(
+        upload_to='resumes/', 
+        blank=True, 
+        null=True,
+        storage=MediaCloudinaryStorage()  # Explicitly use Cloudinary storage
+    )
     firebase_filename = models.CharField(max_length=500, blank=True, null=True)  # Firebase path
     firebase_url = models.URLField(blank=True, null=True)  # Firebase public URL
     file_name = models.CharField(max_length=255)

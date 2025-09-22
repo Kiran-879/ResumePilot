@@ -1,3 +1,9 @@
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://resumepilot-frontend.onrender.com",
+]
 """
 Django settings for resume_checker project.
 
@@ -13,9 +19,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-
-# Load environment variables
-load_dotenv()
+# Explicitly load .env from backend directory
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+load_dotenv(dotenv_path)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +36,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-ny+^k9_7@e6i1@x)d8*j#nx47=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'resumepilot-1.onrender.com',  # Your existing Render URL
+    '*.onrender.com',              # Allow any Render subdomain
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition
@@ -41,7 +52,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Cloudinary must come BEFORE staticfiles
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     # Third party apps
     'rest_framework',
     'rest_framework.authtoken',
@@ -132,7 +146,39 @@ AUTH_USER_MODEL = 'authentication.CustomUser'
 
 STATIC_URL = 'static/'
 
-# Media files (User uploaded files)
+# Cloudinary configuration
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+    secure=True
+)
+
+# Set Cloudinary as the default file storage
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# For Django 4.2+, also set STORAGES
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# Cloudinary settings
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+# Media files settings (for local fallback if needed)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -159,15 +205,13 @@ REST_FRAMEWORK = {
 # CORS settings for React frontend
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React development server
+    "https://resumepilot-frontend.onrender.com",  # Add your frontend Render URL
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-# File upload settings
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 # Disable CSRF for API endpoints
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "https://resumepilot-frontend.onrender.com",  # Add your frontend Render URL
 ]

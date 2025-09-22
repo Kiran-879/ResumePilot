@@ -28,22 +28,31 @@ class ResumeListCreateView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
+        # Debug: Check storage backend
+        from django.core.files.storage import default_storage
+        print(f"🔧 Storage backend: {type(default_storage)}")
+        print(f"🔧 Storage location: {getattr(default_storage, 'location', 'No location attr')}")
+        
         serializer = ResumeCreateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             # Get the uploaded file
             uploaded_file = request.FILES.get('file')
             
-            # Create the resume object with local file storage
+            print(f"🔍 Uploading file: {uploaded_file.name}")
+            print(f"🔍 File size: {uploaded_file.size}")
+            print(f"🔍 Content type: {uploaded_file.content_type}")
+            
             resume = Resume.objects.create(
                 user=request.user,
                 file_name=uploaded_file.name,
                 file_size=uploaded_file.size,
-                file=uploaded_file  # Store locally
+                file=uploaded_file
             )
-            
-            print(f"✅ File uploaded locally: {resume.file.name}")
-                
             resume.save()
+            
+            print(f"✅ File saved. File path/URL: {resume.file}")
+            print(f"✅ File name in storage: {resume.file.name}")
+            print(f"✅ File URL: {resume.file.url if resume.file else 'No file'}")
             
             # Trigger background processing
             try:
@@ -98,19 +107,12 @@ class ResumeDownloadView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        try:
-            # Use local file storage
-            if resume.file:
-                with open(resume.file.path, 'rb') as f:
-                    response = HttpResponse(f.read(), content_type='application/pdf')
-                    response['Content-Disposition'] = f'attachment; filename="{resume.file_name}"'
-                    return response
-            else:
-                raise Http404("File not found")
-                
-        except Exception as e:
-            print(f"Error downloading file: {str(e)}")
-            raise Http404("File not found or cannot be downloaded")
+        if resume.file:
+            response = HttpResponse(resume.file, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{resume.file_name}"'
+            return response
+        else:
+            raise Http404("File not found")
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])

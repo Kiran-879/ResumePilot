@@ -64,7 +64,16 @@ const Register = () => {
             Register
           </Typography>
           
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{JSON.stringify(error)}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {typeof error === 'string' ? error : (
+                Array.isArray(error) ? error.join(', ') :
+                Object.entries(error).map(([key, value]) => (
+                  <div key={key}><strong>{key}:</strong> {Array.isArray(value) ? value.join(', ') : value}</div>
+                ))
+              )}
+            </Alert>
+          )}
           
           <form onSubmit={handleSubmit}>
             <TextField
