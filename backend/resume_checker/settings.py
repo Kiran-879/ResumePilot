@@ -38,6 +38,7 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = [
     'resumepilot-1.onrender.com',  # Your existing Render URL
+    'resumepilot-backend.onrender.com',  # Add the actual backend URL
     '*.onrender.com',              # Allow any Render subdomain
     'localhost',
     '127.0.0.1',

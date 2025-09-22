@@ -18,7 +18,19 @@ from jobs.models import JobDescription
 
 
 # Import real LLM services only
-from llm_services import enhanced_scoring_service, embedding_service
+# Temporarily disabled for deployment
+# from llm_services import enhanced_scoring_service, embedding_service
+
+# Mock services for deployment
+class MockService:
+    def enhance_evaluation(self, *args, **kwargs):
+        return {}
+    
+    def get_skills_embedding(self, *args, **kwargs):
+        return []
+
+enhanced_scoring_service = MockService()
+embedding_service = MockService()
 
 class EvaluationListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
