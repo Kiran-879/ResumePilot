@@ -1,0 +1,4 @@
+# Static site configuration for Render
+# This ensures proper routing for React SPA
+
+/*    /index.html   200
