@@ -210,6 +210,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # Make sure this is False for security
 
 # Disable CSRF for API endpoints
 CSRF_TRUSTED_ORIGINS = [
