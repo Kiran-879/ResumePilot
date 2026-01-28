@@ -73,6 +73,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
+      // Clear any existing token before attempting login
+      Cookies.remove('authToken');
+      
       const response = await authService.login(credentials);
       const user = await authService.getProfile();
       dispatch({
@@ -81,20 +84,58 @@ export const AuthProvider = ({ children }) => {
       });
       return { success: true };
     } catch (error) {
-      dispatch({
-        type: 'AUTH_ERROR',
-        payload: error.response?.data?.detail || 'Login failed'
-      });
-      return { success: false, error: error.response?.data?.detail };
+      console.log('AuthContext login error:', error);
+      console.log('Error response:', error.response);
+      console.log('Error data:', error.response?.data);
+      
+      // Clear any token that might have been set
+      Cookies.remove('authToken');
+      
+      const errorMessage = error.response?.data?.error || error.message || 'Login failed';
+      const errorField = error.response?.data?.field || null;
+      
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      return { 
+        success: false, 
+        error: errorMessage,
+        field: errorField
+      };
     }
   };
 
   const register = async (userData) => {
     try {
-      await authService.register(userData);
+      console.log('Registering user with data:', userData);
+      const response = await authService.register(userData);
+      console.log('Registration successful:', response);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data };
+      console.log('Registration error:', error);
+      console.log('Error response:', error.response);
+      console.log('Error data:', error.response?.data);
+      
+      // Format error message for display
+      let errorMessage = 'Registration failed. Please try again.';
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (typeof data === 'string') {
+          errorMessage = data;
+        } else if (typeof data === 'object') {
+          // Handle Django REST framework validation errors
+          const errors = [];
+          for (const [key, value] of Object.entries(data)) {
+            if (Array.isArray(value)) {
+              errors.push(`${key}: ${value.join(', ')}`);
+            } else {
+              errors.push(`${key}: ${value}`);
+            }
+          }
+          errorMessage = errors.join('\n');
+        }
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 

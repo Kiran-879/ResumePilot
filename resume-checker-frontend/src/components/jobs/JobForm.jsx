@@ -24,6 +24,7 @@ const JobForm = ({ onSuccess }) => {
     experience_required: '',
     location: '',
     priority: 'medium',
+    positions_required: 1,
     job_description_file: null
   });
   const [loading, setLoading] = useState(false);
@@ -86,6 +87,7 @@ const JobForm = ({ onSuccess }) => {
         experience_required: '',
         location: '',
         priority: 'medium',
+        positions_required: 1,
         job_description_file: null
       });
 
@@ -195,6 +197,21 @@ const JobForm = ({ onSuccess }) => {
             </FormControl>
           </Grid>
 
+          <Grid item xs={12} sm={6}>
+            <TextField
+              name="positions_required"
+              label="Number of Positions Required"
+              type="number"
+              value={formData.positions_required}
+              onChange={handleChange}
+              fullWidth
+              required
+              disabled={loading}
+              inputProps={{ min: 1 }}
+              helperText="How many students/candidates needed for this role"
+            />
+          </Grid>
+
           <Grid item xs={12}>
             <Box
               sx={{
@@ -262,6 +279,7 @@ const JobForm = ({ onSuccess }) => {
                     experience_required: '',
                     location: '',
                     priority: 'medium',
+                    positions_required: 1,
                     job_description_file: null
                   });
                   const fileInput = document.getElementById('job-file-upload');

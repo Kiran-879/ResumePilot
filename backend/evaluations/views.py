@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .models import Evaluation, EvaluationLog
+from .models import Evaluation, EvaluationLog, JobApplication
 from .serializer import (
     EvaluationSerializer, 
     EvaluationCreateSerializer, 
@@ -214,4 +214,146 @@ def evaluation_stats(request):
         'total_evaluations': total_evaluations,
         'high_score_evaluations': high_score_evaluations,
         'success_rate': (high_score_evaluations / total_evaluations * 100) if total_evaluations > 0 else 0
+    })
+
+
+# Job Application Views
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def my_applications(request):
+    """Get all job applications for the current student"""
+    if request.user.role != 'student':
+        return Response({'error': 'Only students can view their applications'}, status=status.HTTP_403_FORBIDDEN)
+    
+    applications = JobApplication.objects.filter(student=request.user).select_related('job', 'resume')
+    
+    data = []
+    for app in applications:
+        # Get evaluation if exists
+        evaluation = Evaluation.objects.filter(resume=app.resume, job_description=app.job).first()
+        
+        data.append({
+            'id': app.id,
+            'job': {
+                'id': app.job.id,
+                'title': app.job.title,
+                'company_name': app.job.company_name,
+                'location': app.job.location,
+            },
+            'resume': {
+                'id': app.resume.id,
+                'file_name': app.resume.file_name,
+            },
+            'status': app.status,
+            'status_display': app.get_status_display(),
+            'applied_at': app.applied_at,
+            'evaluation_score': evaluation.overall_score if evaluation else None,
+            'notes': app.notes,
+        })
+    
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def apply_to_job(request):
+    """Student applies to a job with a selected resume"""
+    if request.user.role != 'student':
+        return Response({'error': 'Only students can apply to jobs'}, status=status.HTTP_403_FORBIDDEN)
+    
+    job_id = request.data.get('job_id')
+    resume_id = request.data.get('resume_id')
+    
+    if not job_id or not resume_id:
+        return Response({'error': 'Job ID and Resume ID are required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Verify job exists and is active
+    try:
+        job = JobDescription.objects.get(pk=job_id, is_active=True)
+    except JobDescription.DoesNotExist:
+        return Response({'error': 'Job not found or not active'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Verify resume belongs to the student
+    try:
+        resume = Resume.objects.get(pk=resume_id, user=request.user)
+    except Resume.DoesNotExist:
+        return Response({'error': 'Resume not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Check if already applied
+    if JobApplication.objects.filter(student=request.user, job=job).exists():
+        return Response({'error': 'You have already applied to this job'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Create application
+    application = JobApplication.objects.create(
+        student=request.user,
+        job=job,
+        resume=resume,
+        status='applied'
+    )
+    
+    # Trigger evaluation automatically
+    evaluation, created = Evaluation.objects.get_or_create(
+        resume=resume,
+        job_description=job,
+        defaults={
+            'overall_score': 0,
+            'recommendation': 'not_recommended'
+        }
+    )
+    
+    return Response({
+        'message': 'Application submitted successfully',
+        'application_id': application.id,
+        'status': application.status
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_application_status(request, job_id):
+    """Check if student has applied to a specific job"""
+    if request.user.role != 'student':
+        return Response({'applied': False})
+    
+    application = JobApplication.objects.filter(student=request.user, job_id=job_id).first()
+    
+    if application:
+        return Response({
+            'applied': True,
+            'application_id': application.id,
+            'status': application.status,
+            'status_display': application.get_status_display(),
+            'resume_id': application.resume.id,
+            'applied_at': application.applied_at
+        })
+    
+    return Response({'applied': False})
+
+
+@api_view(['PATCH'])
+@permission_classes([permissions.IsAuthenticated])
+def update_application_status(request, application_id):
+    """Placement team updates application status (shortlist/reject)"""
+    if request.user.role == 'student':
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        application = JobApplication.objects.get(pk=application_id)
+    except JobApplication.DoesNotExist:
+        return Response({'error': 'Application not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    new_status = request.data.get('status')
+    notes = request.data.get('notes', '')
+    
+    if new_status:
+        application.status = new_status
+    if notes:
+        application.notes = notes
+    
+    application.save()
+    
+    return Response({
+        'message': 'Application updated',
+        'status': application.status,
+        'status_display': application.get_status_display()
     })

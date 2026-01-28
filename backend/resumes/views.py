@@ -21,8 +21,10 @@ class ResumeListCreateView(APIView):
         if request.user.role == 'student':
             resumes = Resume.objects.filter(user=request.user)
         else:
-            # Placement team and admin can see all resumes
-            resumes = Resume.objects.all()
+            # Placement team sees only resumes that have evaluations (matched resumes)
+            from evaluations.models import Evaluation
+            evaluated_resume_ids = Evaluation.objects.values_list('resume_id', flat=True).distinct()
+            resumes = Resume.objects.filter(id__in=evaluated_resume_ids)
         
         serializer = ResumeSerializer(resumes, many=True, context={'request': request})
         return Response(serializer.data)

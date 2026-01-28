@@ -54,12 +54,22 @@ const Layout = ({ children }) => {
     navigate('/login');
   };
 
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Resumes', icon: <ResumeIcon />, path: '/resumes' },
-    { text: 'Jobs', icon: <JobIcon />, path: '/jobs' },
-    { text: 'Evaluations', icon: <EvaluationIcon />, path: '/evaluations' }
-  ];
+  const isStudent = user?.role === 'student';
+
+  // Menu items based on role
+  const menuItems = isStudent 
+    ? [
+        { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+        { text: 'My Resume', icon: <ResumeIcon />, path: '/resumes' },
+        { text: 'Browse Jobs', icon: <JobIcon />, path: '/jobs' },
+        { text: 'My Evaluations', icon: <EvaluationIcon />, path: '/evaluations' }
+      ]
+    : [
+        { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+        { text: 'All Resumes', icon: <ResumeIcon />, path: '/resumes' },
+        { text: 'Manage Jobs', icon: <JobIcon />, path: '/jobs' },
+        { text: 'Evaluations', icon: <EvaluationIcon />, path: '/evaluations' }
+      ];
 
   const drawer = (
     <div>

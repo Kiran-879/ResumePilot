@@ -26,6 +26,28 @@ export const jobService = {
     return response.data;
   },
 
+  getMatchedCandidates: async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/candidates/`);
+    return response.data;
+  },
+
+  getAppliedResumes: async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/applied/`);
+    return response.data;
+  },
+
+  exportCandidatesExcel: async (jobId, type = 'all', minScore = 0, limit = null, roundName = null) => {
+    const params = { type, min_score: minScore };
+    if (limit) params.limit = limit;
+    if (roundName) params.round = roundName;
+    
+    const response = await api.get(`/jobs/${jobId}/export/`, {
+      params,
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
   updateJob: async (id, jobData) => {
     const formData = new FormData();
     Object.keys(jobData).forEach(key => {

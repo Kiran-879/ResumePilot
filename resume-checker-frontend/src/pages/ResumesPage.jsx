@@ -5,11 +5,13 @@ import {
   Typography,
   Tabs,
   Tab,
-  Paper
+  Paper,
+  Alert
 } from '@mui/material';
 import ResumeUpload from '../components/resume/ResumeUpload';
 import ResumeList from '../components/resume/ResumeList';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -26,7 +28,10 @@ function TabPanel({ children, value, index, ...other }) {
 }
 
 const ResumesPage = () => {
-  const [tabValue, setTabValue] = useState(0);
+  const { user } = useAuth();
+  const isStudent = user?.role === 'student';
+  const isPlacementTeam = user?.role === 'placement_team' || user?.role === 'admin';
+  const [tabValue, setTabValue] = useState(isPlacementTeam ? 0 : 0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleTabChange = (event, newValue) => {
@@ -36,13 +41,36 @@ const ResumesPage = () => {
   const handleUploadSuccess = (resume) => {
     toast.success(`Resume "${resume.file_name}" uploaded successfully!`);
     setRefreshTrigger(prev => prev + 1);
-    setTabValue(1); // Switch to list tab
+    setTabValue(isPlacementTeam ? 0 : 1); // Switch to list tab
   };
 
+  // Placement Team View - Only show student resumes, no upload
+  if (isPlacementTeam) {
+    return (
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Student Resumes
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          View all student resumes. Students upload their own resumes and you can view evaluations from the Jobs page.
+        </Typography>
+
+        <Paper elevation={1} sx={{ p: 3 }}>
+          <ResumeList refreshTrigger={refreshTrigger} />
+        </Paper>
+      </Box>
+    );
+  }
+
+  // Student View - Upload and view own resumes
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Resume Management
+        My Resume
+      </Typography>
+
+      <Typography variant="body2" color="text.secondary" paragraph>
+        Upload and manage your resume to apply for job opportunities
       </Typography>
 
       <Paper elevation={1}>

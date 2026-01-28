@@ -11,9 +11,12 @@ import {
 import JobForm from '../components/jobs/JobForm';
 import JobList from '../components/jobs/JobList';
 import { jobService } from '../services/jobServices';
+import { useAuth } from '../context/AuthContext';
 
 const JobsPage = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const { user } = useAuth();
+  const isStudent = user?.role === 'student';
+  const [activeTab, setActiveTab] = useState(isStudent ? 0 : 0);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,36 +83,55 @@ const JobsPage = () => {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Job Management
+        {isStudent ? 'Available Jobs' : 'Job Management'}
       </Typography>
 
       <Typography variant="subtitle1" color="text.secondary" paragraph>
-        Manage job postings for resume evaluation and matching
+        {isStudent 
+          ? 'Browse job openings and check how well your resume matches'
+          : 'Manage job postings for resume evaluation and matching'
+        }
       </Typography>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs 
-          value={activeTab} 
-          onChange={handleTabChange} 
-          aria-label="job management tabs"
-        >
-          <Tab label="Create Job" {...a11yProps(0)} />
-          <Tab label={`All Jobs (${jobs?.length || 0})`} {...a11yProps(1)} />
-        </Tabs>
-      </Box>
+      {isStudent ? (
+        // Student View - Just show job list
+        <Box sx={{ mt: 2 }}>
+          <JobList 
+            jobs={jobs}
+            loading={loading}
+            error={error}
+            onRefresh={loadJobs}
+            isStudentView={true}
+          />
+        </Box>
+      ) : (
+        // Placement Team View - Full management
+        <>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={handleTabChange} 
+              aria-label="job management tabs"
+            >
+              <Tab label="Create Job" {...a11yProps(0)} />
+              <Tab label={`All Jobs (${jobs?.length || 0})`} {...a11yProps(1)} />
+            </Tabs>
+          </Box>
 
-      <TabPanel value={activeTab} index={0}>
-        <JobForm onSuccess={handleJobCreated} />
-      </TabPanel>
+          <TabPanel value={activeTab} index={0}>
+            <JobForm onSuccess={handleJobCreated} />
+          </TabPanel>
 
-      <TabPanel value={activeTab} index={1}>
-        <JobList 
-          jobs={jobs}
-          loading={loading}
-          error={error}
-          onRefresh={loadJobs}
-        />
-      </TabPanel>
+          <TabPanel value={activeTab} index={1}>
+            <JobList 
+              jobs={jobs}
+              loading={loading}
+              error={error}
+              onRefresh={loadJobs}
+            />
+          </TabPanel>
+        </>
+      )}
 
       <Snackbar
         open={snackbar.open}

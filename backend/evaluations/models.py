@@ -6,6 +6,32 @@ from jobs.models import JobDescription
 
 User = get_user_model()
 
+class JobApplication(models.Model):
+    """Track student applications to jobs"""
+    STATUS_CHOICES = [
+        ('applied', 'Applied'),
+        ('under_review', 'Under Review'),
+        ('shortlisted', 'Shortlisted'),
+        ('rejected', 'Rejected'),
+        ('interview', 'Interview Scheduled'),
+        ('selected', 'Selected'),
+    ]
+    
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_applications')
+    job = models.ForeignKey(JobDescription, on_delete=models.CASCADE, related_name='applications')
+    resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='applications')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='applied')
+    applied_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)  # Placement team can add notes
+    
+    class Meta:
+        unique_together = ['student', 'job']  # One application per student per job
+        ordering = ['-applied_at']
+    
+    def __str__(self):
+        return f"{self.student.username} - {self.job.title} - {self.status}"
+
 class Evaluation(models.Model):
     VERDICT_CHOICES = [
         ('high', 'High Suitability'),

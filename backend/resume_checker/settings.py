@@ -206,6 +206,11 @@ REST_FRAMEWORK = {
 # CORS settings for React frontend
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React development server
+    "http://localhost:3001",  # React on alternate port
+    "http://localhost:3002",  # React on alternate port
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:3002",
     "https://resumepilot-frontend.onrender.com",  # Add your frontend Render URL
 ]
 
@@ -215,5 +220,7 @@ CORS_ALLOW_ALL_ORIGINS = False  # Make sure this is False for security
 # Disable CSRF for API endpoints
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
     "https://resumepilot-frontend.onrender.com",  # Add your frontend Render URL
 ]

@@ -31,39 +31,54 @@ class RegisterView(APIView):
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         print("Login attempt - data received:", request.data)  # Debug print
-        print("Request content type:", request.content_type)  # Debug print
         
         # Check if required fields are present
         username = request.data.get('username')
         password = request.data.get('password')
+        login_type = request.data.get('login_type')  # 'student' or 'placement_team'
         
         if not username or not password:
             return Response({
-                'error': 'Both username and password are required'
+                'error': 'Both username and password are required',
+                'field': None
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        # Check if user exists
         try:
-            serializer = self.serializer_class(data=request.data,
-                                               context={'request': request})
-            if serializer.is_valid():
-                user = serializer.validated_data['user']
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({
-                    'user': UserSerializer(user).data,
-                    'token': token.key
-                })
-            else:
-                print("Serializer errors:", serializer.errors)  # Debug print
-                return Response({
-                    'error': 'Invalid credentials',
-                    'details': serializer.errors
-                }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print("Login error:", str(e))  # Debug print
+            user_exists = CustomUser.objects.get(username=username)
+        except CustomUser.DoesNotExist:
             return Response({
-                'error': 'Login failed',
-                'details': str(e)
+                'error': 'User does not exist. Please check your username or register.',
+                'field': 'username'
             }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if password is correct
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({
+                'error': 'Password is incorrect. Please try again.',
+                'field': 'password'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if user role matches selected login type
+        if login_type:
+            if login_type == 'student' and user.role != 'student':
+                return Response({
+                    'error': 'This account is not a student account. Please select "Placement Team" to login.',
+                    'field': 'role'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif login_type == 'placement_team' and user.role not in ['placement_team', 'admin']:
+                return Response({
+                    'error': 'This account is not a placement team account. Please select "Student" to login.',
+                    'field': 'role'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # User authenticated successfully
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'user': UserSerializer(user).data,
+            'token': token.key
+        })
 
 class UserProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]

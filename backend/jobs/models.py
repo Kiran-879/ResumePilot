@@ -24,6 +24,9 @@ class JobDescription(models.Model):
     experience_required = models.CharField(max_length=50, blank=True)
     location = models.CharField(max_length=100, blank=True)
     
+    # New field for number of positions
+    positions_required = models.PositiveIntegerField(default=1, help_text="Number of students/candidates required")
+    
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)

@@ -8,6 +8,9 @@ User = get_user_model()
 class JobDescriptionSerializer(serializers.ModelSerializer):
     uploaded_by_details = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
+    matched_candidates_count = serializers.SerializerMethodField()
+    applied_candidates_count = serializers.SerializerMethodField()
+    high_match_count = serializers.SerializerMethodField()
     
     class Meta:
         model = JobDescription
@@ -15,6 +18,8 @@ class JobDescriptionSerializer(serializers.ModelSerializer):
             'id', 'title', 'company_name', 'job_description_file', 'file_url',
             'raw_text', 'role_title', 'must_have_skills', 'good_to_have_skills',
             'qualifications', 'experience_required', 'location', 'priority',
+            'positions_required', 'matched_candidates_count', 'applied_candidates_count',
+            'high_match_count',
             'uploaded_by', 'uploaded_by_details', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['uploaded_by', 'raw_text', 'role_title', 'must_have_skills',
@@ -33,12 +38,27 @@ class JobDescriptionSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.job_description_file.url)
         return None
+    
+    def get_matched_candidates_count(self, obj):
+        # Get count of evaluations for this job with score >= 50
+        from evaluations.models import Evaluation
+        return Evaluation.objects.filter(job_description=obj, overall_score__gte=50).count()
+    
+    def get_applied_candidates_count(self, obj):
+        # Get count of all evaluations (applications) for this job
+        from evaluations.models import Evaluation
+        return Evaluation.objects.filter(job_description=obj).count()
+    
+    def get_high_match_count(self, obj):
+        # Get count of evaluations with score >= 70
+        from evaluations.models import Evaluation
+        return Evaluation.objects.filter(job_description=obj, overall_score__gte=70).count()
 
 class JobDescriptionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobDescription
         fields = ['title', 'company_name', 'job_description_file', 'experience_required',
-                 'location', 'priority']
+                 'location', 'priority', 'positions_required']
     
     def validate_job_description_file(self, value):
         # Check file extension

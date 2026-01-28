@@ -13,14 +13,19 @@ import {
   ListItemIcon,
   CircularProgress,
   Button,
-  Chip
+  Chip,
+  Alert,
+  LinearProgress
 } from '@mui/material';
 import {
   Description as ResumeIcon,
   Work as JobIcon,
   Assessment as EvaluationIcon,
   TrendingUp as TrendingUpIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  School as SchoolIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +36,7 @@ import { evaluationService } from '../services/evaluationServices';
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isStudent = user?.role === 'student';
   const [stats, setStats] = useState({
     resumes: 0,
     jobs: 0,
@@ -39,6 +45,7 @@ const Dashboard = () => {
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [latestEvaluation, setLatestEvaluation] = useState(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -97,6 +104,14 @@ const Dashboard = () => {
 
       console.log('📊 New stats:', newStats);
       setStats(newStats);
+
+      // Store latest evaluation for students
+      if (evaluations.length > 0) {
+        const sortedEvals = [...evaluations].sort((a, b) => 
+          new Date(b.created_at) - new Date(a.created_at)
+        );
+        setLatestEvaluation(sortedEvals[0]);
+      }
 
       // Prepare recent activity
       const activity = [
@@ -176,6 +191,221 @@ const Dashboard = () => {
       </Box>
     );
   }
+
+  // Student Dashboard - Simplified View
+  if (isStudent) {
+    return (
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box>
+            <Typography variant="h4" gutterBottom>
+              Welcome, {user?.username}! 👋
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+              Track your resume and job applications
+            </Typography>
+          </Box>
+          <Button 
+            variant="outlined" 
+            onClick={loadDashboardData}
+            disabled={loading}
+            startIcon={<RefreshIcon />}
+          >
+            Refresh
+          </Button>
+        </Box>
+
+        <Grid container spacing={3}>
+          {/* Resume Status Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={1} mb={2}>
+                  <ResumeIcon color="primary" />
+                  <Typography variant="h6">My Resume</Typography>
+                </Box>
+                
+                {stats.resumes > 0 ? (
+                  <Box>
+                    <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 2 }}>
+                      You have {stats.resumes} resume{stats.resumes > 1 ? 's' : ''} uploaded
+                    </Alert>
+                    <Button 
+                      variant="contained" 
+                      fullWidth
+                      onClick={() => navigate('/resumes')}
+                    >
+                      View My Resumes
+                    </Button>
+                  </Box>
+                ) : (
+                  <Box>
+                    <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
+                      No resume uploaded yet
+                    </Alert>
+                    <Button 
+                      variant="contained" 
+                      color="primary"
+                      fullWidth
+                      onClick={() => navigate('/resumes')}
+                    >
+                      Upload Resume
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Score Overview Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={1} mb={2}>
+                  <TrendingUpIcon color="success" />
+                  <Typography variant="h6">My Score</Typography>
+                </Box>
+                
+                {stats.evaluations > 0 ? (
+                  <Box textAlign="center">
+                    <Typography variant="h2" color={stats.averageScore >= 70 ? 'success.main' : stats.averageScore >= 50 ? 'warning.main' : 'error.main'}>
+                      {stats.averageScore}%
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" mb={2}>
+                      Average Match Score
+                    </Typography>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={stats.averageScore} 
+                      color={stats.averageScore >= 70 ? 'success' : stats.averageScore >= 50 ? 'warning' : 'error'}
+                      sx={{ height: 10, borderRadius: 5, mb: 2 }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      Based on {stats.evaluations} evaluation{stats.evaluations > 1 ? 's' : ''}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box textAlign="center" py={2}>
+                    <SchoolIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                    <Typography variant="body1" color="text.secondary">
+                      No evaluations yet
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" mt={1}>
+                      Upload a resume and apply for jobs to see your match scores
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Available Jobs */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <JobIcon color="secondary" />
+                    <Typography variant="h6">Available Jobs</Typography>
+                  </Box>
+                  <Chip label={stats.jobs} color="secondary" size="small" />
+                </Box>
+                
+                {stats.jobs > 0 ? (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" mb={2}>
+                      Browse available job openings and check your resume match
+                    </Typography>
+                    <Button 
+                      variant="outlined" 
+                      fullWidth
+                      onClick={() => navigate('/jobs')}
+                    >
+                      Browse Jobs
+                    </Button>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+                    No job postings available right now
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Recent Evaluations */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <EvaluationIcon color="info" />
+                    <Typography variant="h6">My Evaluations</Typography>
+                  </Box>
+                  <Chip label={stats.evaluations} color="info" size="small" />
+                </Box>
+                
+                {latestEvaluation ? (
+                  <Box>
+                    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Latest Evaluation
+                      </Typography>
+                      <Typography variant="h4" color="primary.main">
+                        {latestEvaluation.overall_score}%
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDate(latestEvaluation.created_at)}
+                      </Typography>
+                    </Paper>
+                    <Button 
+                      variant="outlined" 
+                      fullWidth
+                      onClick={() => navigate('/evaluations')}
+                    >
+                      View All Evaluations
+                    </Button>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+                    Complete job applications to see evaluations
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Tips for Students */}
+          <Grid item xs={12}>
+            <Paper elevation={1} sx={{ p: 3, bgcolor: 'primary.50' }}>
+              <Typography variant="h6" gutterBottom>
+                💡 Tips to Improve Your Score
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="body2">
+                    ✅ Keep your resume updated with latest skills
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="body2">
+                    ✅ Match keywords from job descriptions
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="body2">
+                    ✅ Highlight relevant projects and experience
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }
+
+  // Placement Team / Admin Dashboard - Full View
 
   return (
     <Box>
@@ -280,37 +510,44 @@ const Dashboard = () => {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Button 
-                  variant="outlined" 
+                  variant="contained" 
                   fullWidth
-                  startIcon={<ResumeIcon />}
-                  onClick={() => navigate('/resumes')}
-                >
-                  Upload Resume
-                </Button>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Button 
-                  variant="outlined" 
-                  fullWidth
+                  color="secondary"
                   startIcon={<JobIcon />}
                   onClick={() => navigate('/jobs')}
                 >
                   Create Job Posting
                 </Button>
               </Grid>
+
+              <Grid item xs={12}>
+                <Button 
+                  variant="outlined" 
+                  fullWidth
+                  startIcon={<ResumeIcon />}
+                  onClick={() => navigate('/resumes')}
+                >
+                  View Student Resumes
+                </Button>
+              </Grid>
               
               <Grid item xs={12}>
                 <Button 
-                  variant="contained" 
+                  variant="outlined" 
                   fullWidth
                   startIcon={<EvaluationIcon />}
                   onClick={() => navigate('/evaluations')}
                 >
-                  View Evaluations
+                  View All Evaluations
                 </Button>
               </Grid>
             </Grid>
+
+            <Box mt={3} p={2} bgcolor="info.50" borderRadius={1}>
+              <Typography variant="body2" color="text.secondary">
+                💡 <strong>Tip:</strong> Click on "Matched" button in Jobs page to see top candidates for each position
+              </Typography>
+            </Box>
 
             {user?.role && (
               <Box mt={2}>
