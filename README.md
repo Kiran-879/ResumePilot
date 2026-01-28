@@ -1,91 +1,232 @@
-# 🤖 AI-Powered Resume Analyzer & Job Matching System
+# 📄 Resume Checker - AI-Powered Resume Evaluation System
 
-A comprehensive full-stack web application that revolutionizes the recruitment process through intelligent resume analysis and automated job-candidate matching using AI/ML technologies.
+An intelligent resume screening application that uses **OpenAI GPT** and **Semantic Similarity** to evaluate resumes against job descriptions, helping placement teams streamline their recruitment process.
 
-## ✨ Features
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![Django](https://img.shields.io/badge/Django-4.0+-green)
+![React](https://img.shields.io/badge/React-19-61DAFB)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT-412991)
+![MUI](https://img.shields.io/badge/Material--UI-7-007FFF)
 
-### 🎯 **Core Functionality**
-- **Intelligent Resume Parsing**: Automatically extracts candidate names, contact info, skills, experience, and education from PDF/DOCX files
-- **AI-Powered Evaluation**: Uses advanced NLP models (spaCy) for comprehensive resume analysis
-- **Smart Job Matching**: Automated compatibility scoring between resumes and job descriptions
-- **Multi-Criteria Assessment**: Evaluates hard skills, soft skills, experience, education, and semantic similarity
-- **Real-Time Processing**: Background processing with live status updates
+---
 
-### 👤 **User Management**
-- **Role-Based Access Control**: Separate interfaces for Students, Placement Team, and Admins
-- **Secure Authentication**: Token-based authentication with JWT
-- **Permission Management**: Users can only access their own data (students) or all data (admins)
+## 🚀 Features
 
-### 📊 **Advanced Analytics**
-- **Detailed Scoring System**: 5-component evaluation (Hard Skills: 85%, Soft Skills: 70%, Experience: 90%, Education: 75%, Overall: 82%)
-- **Recommendation Engine**: Provides actionable improvement suggestions
-- **Strengths & Weaknesses Analysis**: Identifies candidate strengths and areas for improvement
-- **Interactive Dashboards**: Visual representations of evaluation metrics
+### 👨‍🎓 For Students
 
-### 🔧 **Technical Features**
-- **File Storage**: Local storage with cloud storage integration ready (Google Cloud Storage support)
-- **RESTful API**: Clean, documented API endpoints for all operations
-- **Responsive Design**: Mobile-friendly interface built with Material-UI
-- **Data Export**: Download evaluation reports and resume files
-- **Error Handling**: Comprehensive error handling and user feedback
+| Feature | Description |
+|---------|-------------|
+| **Dashboard** | Personalized welcome screen with resume status, score overview, and tips |
+| **Resume Upload** | Upload PDF/DOCX resumes with drag-and-drop support |
+| **My Resumes** | View and manage uploaded resumes |
+| **Browse Jobs** | View all available job openings posted by placement team |
+| **Apply to Jobs** | Select a resume and apply to jobs directly |
+| **Application Tracking** | Track application status (Applied → Under Review → Shortlisted → Interview → Selected/Rejected) |
+| **My Evaluations** | View AI evaluation scores and detailed feedback |
+| **Score Overview** | See average match score across all evaluations |
+| **Application Stats** | View total applied, pending, shortlisted, and rejected counts |
 
-## 🏗️ **Architecture**
+### 👔 For Placement Team
 
-### **Backend (Django + DRF)**
+| Feature | Description |
+|---------|-------------|
+| **Dashboard** | Overview of all resumes, jobs, and evaluation statistics |
+| **Create Jobs** | Post new job openings with title, company, location, requirements, priority |
+| **Job Management** | Edit, delete, and manage job postings |
+| **View Student Resumes** | Access all student-uploaded resumes |
+| **Matched Candidates** | View candidates sorted by AI evaluation score per job |
+| **Candidate Details** | See detailed scores (Hard Skills, Soft Skills, Experience, Education) |
+| **First Round Shortlisting** | Select top N candidates for shortlisting |
+| **Export to Excel** | Export candidate lists (All / Matched 50%+ / Shortlist) |
+| **Update Application Status** | Change student application status with notes |
+| **Evaluation Statistics** | View total evaluations, recommendations breakdown |
+
+### 🤖 AI Evaluation Features
+
+- 🧠 **LLM-Based Analysis**: OpenAI GPT for intelligent resume parsing and evaluation
+- 📊 **Multi-Dimensional Scoring**: 
+  - Hard Skills Score
+  - Soft Skills Score  
+  - Experience Score
+  - Education Score
+  - Semantic Similarity Score
+- 🔍 **Semantic Matching**: Vector embeddings with Sentence Transformers (384-dim)
+- 💡 **Smart Recommendations**: AI-generated improvement suggestions
+- ✨ **Skills Gap Analysis**: Matched vs Missing skills identification
+- 🏆 **Final Recommendation**: Highly Recommended / Recommended / Consider / Not Recommended
+
+---
+
+## 📊 Scoring Algorithm
+
 ```
-├── 🐍 Python/Django REST Framework
-├── 🔍 spaCy NLP for name extraction & text analysis
-├── 📄 PyPDF2 & python-docx for document processing
-├── 🗃️ SQLite database with JSON fields for flexible data
-├── 🔐 Token-based authentication
-└── 📊 Mock AI services (expandable to real LLM APIs)
+Final Score = (Hard Skills × 30%) + (Experience × 25%) + 
+              (Soft Skills × 15%) + (Education × 15%) + 
+              (Semantic Similarity × 15%)
 ```
 
-### **Frontend (React + Material-UI)**
+| Component | Weight | Description |
+|-----------|--------|-------------|
+| Hard Skills | 30% | Technical skills match with job requirements |
+| Experience | 25% | Work experience relevance |
+| Soft Skills | 15% | Communication, teamwork, leadership |
+| Education | 15% | Academic qualifications |
+| Semantic | 15% | Overall text similarity using cosine distance |
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| **Python** | Core programming language |
+| **Django 4.0+** | Web framework |
+| **Django REST Framework** | REST API |
+| **OpenAI GPT** | LLM-powered resume analysis |
+| **Sentence Transformers** | Text embeddings (384-dim vectors) |
+| **ChromaDB** | Vector database for semantic search |
+| **SQLite** | Database |
+| **Cloudinary** | Cloud file storage |
+| **PyPDF2 / python-docx** | Document parsing |
+| **openpyxl** | Excel export |
+
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| **React 19** | UI framework |
+| **Material UI 7** | Component library |
+| **React Router 7** | Client-side routing |
+| **Axios** | HTTP client |
+| **Recharts** | Data visualization |
+| **jsPDF** | PDF report generation |
+| **React Dropzone** | File upload |
+| **React Toastify** | Notifications |
+
+---
+
+## 🏗️ Architecture
+
 ```
-├── ⚛️ React 18 with functional components & hooks
-├── 🎨 Material-UI for modern, responsive design
-├── 🔄 Axios for API communication
-├── 🎯 Context API for state management
-└── 📱 Mobile-responsive design
+┌─────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React 19)                       │
+│                                                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  STUDENT VIEW          │  PLACEMENT TEAM VIEW       │    │
+│  │  ─────────────         │  ──────────────────        │    │
+│  │  • Dashboard           │  • Dashboard               │    │
+│  │  • Upload Resume       │  • Create Jobs             │    │
+│  │  • My Resumes          │  • View Student Resumes    │    │
+│  │  • Browse Jobs         │  • Matched Candidates      │    │
+│  │  • Apply to Jobs       │  • Export to Excel         │    │
+│  │  • My Applications     │  • Update App Status       │    │
+│  │  • My Evaluations      │  • All Evaluations         │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                          │                                   │
+│              AuthContext + API Services (Axios)              │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ REST API
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 BACKEND (Django REST Framework)              │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │Authentication│  │  Evaluations │  │    Jobs      │       │
+│  │  • Register  │  │  • Evaluate  │  │  • CRUD      │       │
+│  │  • Login     │  │  • Apply     │  │  • Matched   │       │
+│  │  • Profile   │  │  • Status    │  │  • Export    │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+│                           │                                  │
+│           ┌───────────────┼───────────────┐                 │
+│           ▼               ▼               ▼                 │
+│     [LLM Service]  [Embedding Service]  [Resumes Module]    │
+│      (OpenAI)    (Sentence Transformers)   • Upload         │
+│                                            • Extract        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │   SQLite    │  │  ChromaDB   │  │ Cloudinary  │         │
+│  │  (Database) │  │  (Vectors)  │  │  (Files)    │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 **Getting Started**
+---
 
-### **Prerequisites**
-- Python 3.11+
-- Node.js 16+
-- npm/yarn
+## 📁 Project Structure
 
-### **Backend Setup**
+```
+Resume Project/
+├── backend/
+│   ├── authentication/     # User registration, login, roles
+│   ├── resumes/           # Resume upload & text extraction
+│   ├── jobs/              # Job CRUD, candidates, Excel export
+│   ├── evaluations/       # AI evaluation, applications, status
+│   ├── llm_services.py    # OpenAI + Embedding services
+│   ├── llm_config.py      # API keys & settings
+│   └── manage.py
+│
+├── resume-checker-frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── auth/          # Login, Register forms
+│   │   │   ├── resume/        # ResumeUpload, ResumeList
+│   │   │   ├── jobs/          # JobForm, JobList
+│   │   │   └── evaluations/   # EvaluationCard, EvaluationList
+│   │   ├── pages/
+│   │   │   ├── Dashboard.js   # Role-based dashboard
+│   │   │   ├── ResumesPage.jsx
+│   │   │   ├── JobsPage.jsx
+│   │   │   └── EvaluationsPage.jsx
+│   │   ├── services/          # API service layer
+│   │   ├── context/           # AuthContext
+│   │   └── utils/             # Helpers, PDF generator
+│   └── package.json
+│
+└── README.md
+```
+
+---
+
+## ⚙️ Installation
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- OpenAI API Key
+
+### Backend Setup
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/ai-resume-analyzer.git
-cd ai-resume-analyzer/backend
+# Navigate to backend
+cd backend
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Activate (Windows)
+venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Download spaCy language model
-python -m spacy download en_core_web_sm
+# Create .env file
+echo OPENAI_API_KEY=your_openai_key > .env
+echo SECRET_KEY=your_django_secret >> .env
 
 # Run migrations
 python manage.py migrate
 
-# Create superuser
+# Create admin user
 python manage.py createsuperuser
 
-# Start development server
+# Start server
 python manage.py runserver
 ```
 
-### **Frontend Setup**
+### Frontend Setup
+
 ```bash
-cd ../resume-checker-frontend
+# Navigate to frontend
+cd resume-checker-frontend
 
 # Install dependencies
 npm install
@@ -94,102 +235,138 @@ npm install
 npm start
 ```
 
-### **Access the Application**
+### Access the Application
 - 🌐 **Frontend**: http://localhost:3000
 - 🔧 **API**: http://localhost:8000/api/
-- 👤 **Admin Panel**: http://localhost:8000/admin/
-
-## 📸 **Screenshots**
-
-### Dashboard Overview
-![Dashboard](screenshots/dashboard.png)
-
-### Resume Upload & Processing
-![Upload](screenshots/upload.png)
-
-### AI Evaluation Results
-![Evaluation](screenshots/evaluation.png)
-
-### Job Matching Interface
-![Matching](screenshots/matching.png)
-
-## 🎯 **Use Cases**
-
-### **For Educational Institutions**
-- **Placement Cell Automation**: Streamline student resume screening
-- **Skill Gap Analysis**: Identify areas where curriculum improvements are needed
-- **Job-Student Matching**: Automatically match students with suitable job opportunities
-
-### **For Recruitment Agencies**
-- **Bulk Resume Processing**: Handle hundreds of resumes efficiently
-- **Candidate Ranking**: Automatically rank candidates based on job requirements
-- **Time Savings**: Reduce manual resume screening time by 80%
-
-### **For HR Departments**
-- **Initial Screening**: Automated first-pass candidate filtering
-- **Objective Evaluation**: Consistent, bias-free candidate assessment
-- **Report Generation**: Comprehensive evaluation reports for hiring decisions
-
-## 🔮 **Future Enhancements**
-
-- [ ] **Real LLM Integration**: OpenAI GPT, Google PaLM, or Azure OpenAI
-- [ ] **Advanced Analytics**: Predictive hiring success models
-- [ ] **ATS Integration**: Connect with popular Applicant Tracking Systems
-- [ ] **Video Interview Analysis**: AI-powered video interview assessment
-- [ ] **Blockchain Verification**: Secure credential verification
-- [ ] **Mobile App**: Native iOS/Android applications
-- [ ] **Multi-language Support**: Support for multiple languages
-- [ ] **Advanced Parsing**: Better handling of complex resume formats
-
-## 🛠️ **Technology Stack**
-
-| Category | Technology |
-|----------|------------|
-| **Backend** | Python, Django, Django REST Framework |
-| **Frontend** | React, Material-UI, JavaScript |
-| **Database** | SQLite (production: PostgreSQL) |
-| **AI/ML** | spaCy, NLP, Mock LLM Services |
-| **File Processing** | PyPDF2, python-docx |
-| **Authentication** | JWT Tokens |
-| **Storage** | Local Storage, Google Cloud Storage Ready |
-| **Deployment** | Docker Ready, Cloud Platform Ready |
-
-## 🤝 **Contributing**
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### **Development Workflow**
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- **spaCy**: For excellent NLP capabilities
-- **Material-UI**: For beautiful React components
-- **Django REST Framework**: For robust API development
-- **React Community**: For amazing ecosystem and tools
-
-## 📞 **Contact**
-
-- 📧 **Email**: your.email@example.com
-- 💼 **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- 🐱 **GitHub**: [@yourusername](https://github.com/yourusername)
+- 👤 **Admin**: http://localhost:8000/admin/
 
 ---
 
-⭐ **If you find this project helpful, please give it a star!** ⭐
+## 🔧 Environment Variables
 
-## 📈 **Project Statistics**
+### Backend (.env)
+```env
+SECRET_KEY=your_django_secret_key
+DEBUG=True
+OPENAI_API_KEY=your_openai_api_key
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_key
+CLOUDINARY_API_SECRET=your_cloudinary_secret
+```
 
-- 📝 **Lines of Code**: 5,000+
-- 🧪 **Test Coverage**: 85%
-- 🚀 **Performance**: Sub-second resume processing
-- 📱 **Mobile Responsive**: 100%
-- 🌍 **Browser Support**: Chrome, Firefox, Safari, Edge
+---
+
+## 📝 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register/` | User registration |
+| POST | `/api/auth/login/` | User login |
+| GET | `/api/auth/profile/` | Get user profile |
+
+### Resumes
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/resumes/` | List resumes |
+| POST | `/api/resumes/` | Upload resume |
+| GET | `/api/resumes/{id}/` | Get resume details |
+| DELETE | `/api/resumes/{id}/` | Delete resume |
+| GET | `/api/resumes/{id}/download/` | Download resume file |
+
+### Jobs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/jobs/` | List all active jobs |
+| POST | `/api/jobs/` | Create job (Placement Team) |
+| GET | `/api/jobs/{id}/` | Get job details |
+| PATCH | `/api/jobs/{id}/` | Update job |
+| DELETE | `/api/jobs/{id}/` | Delete job |
+| GET | `/api/jobs/{id}/candidates/` | Get matched candidates |
+| GET | `/api/jobs/{id}/export/` | Export to Excel |
+
+### Evaluations & Applications
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/evaluations/` | List evaluations |
+| POST | `/api/evaluations/` | Create evaluation |
+| GET | `/api/evaluations/{id}/` | Get evaluation details |
+| GET | `/api/evaluations/applications/` | Get my applications (Student) |
+| POST | `/api/evaluations/applications/apply/` | Apply to job |
+| GET | `/api/evaluations/applications/check/{job_id}/` | Check if applied |
+| PATCH | `/api/evaluations/applications/{id}/update/` | Update status (Placement) |
+
+---
+
+## 👥 User Roles
+
+| Role | Permissions |
+|------|-------------|
+| **Student** | Upload resume, Browse jobs, Apply to jobs, View own evaluations, Track applications |
+| **Placement Team** | Create jobs, View all resumes, View all evaluations, Shortlist candidates, Export reports |
+| **Admin** | Full access to all features |
+
+---
+
+## 🔄 Application Flow
+
+### Student Flow
+```
+Register → Login → Upload Resume → Browse Jobs → Apply to Job
+                                        ↓
+                              Auto-Evaluation Triggered
+                                        ↓
+                              View Score & Feedback
+                                        ↓
+                              Track Application Status
+```
+
+### Placement Team Flow
+```
+Login → Create Job Posting → Students Apply
+                                   ↓
+                        View Matched Candidates
+                                   ↓
+                        Sort by Score → Shortlist
+                                   ↓
+                        Export to Excel / Update Status
+```
+
+---
+
+## 🚀 Deployment
+
+Currently deployed on:
+- **Backend**: Render
+- **Frontend**: Render  
+- **File Storage**: Cloudinary
+- **Database**: SQLite (can migrate to PostgreSQL)
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/NewFeature`)
+3. Commit changes (`git commit -m 'Add NewFeature'`)
+4. Push to branch (`git push origin feature/NewFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 🙏 Acknowledgments
+
+- **OpenAI** - GPT API for intelligent analysis
+- **Sentence Transformers** - Text embeddings
+- **Material UI** - Beautiful React components
+- **Django REST Framework** - Robust API development
+
+---
+
+⭐ **Star this repo if you found it helpful!** ⭐
